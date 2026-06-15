@@ -5,6 +5,7 @@ OSSEC_CONF="${OSSEC_CONF:-/var/ossec/etc/ossec.conf}"
 AGENT_CONFIG_DIR="${AGENT_CONFIG_DIR:-/agent-config}"
 OSSEC_TEMPLATE="${OSSEC_TEMPLATE:-$AGENT_CONFIG_DIR/ossec.conf.template}"
 SNIPPET_DIR="${SNIPPET_DIR:-$AGENT_CONFIG_DIR/snippets}"
+S6_ENV_DIR="${S6_ENV_DIR:-/var/run/s6/container_environment}"
 CUSTOM_MARKER_BEGIN="<!-- BEGIN local agent config snippets -->"
 CUSTOM_MARKER_END="<!-- END local agent config snippets -->"
 
@@ -39,6 +40,14 @@ EFFECTIVE_WAZUH_AGENT_GROUP="${WAZUH_AGENT_GROUP:-default}"
 if [ -z "$EFFECTIVE_WAZUH_MANAGER" ]; then
   echo "WAZUH manager address is empty. Refusing to overwrite $OSSEC_CONF with an invalid client configuration."
   exit 1
+fi
+
+if [ "${WAZUH_REGISTRATION_PASSWORD:-}" = "CHANGE_ME_OR_LEAVE_EMPTY_IF_NOT_USED" ]; then
+  echo "WAZUH_REGISTRATION_PASSWORD is still set to the example placeholder. Clearing it for enrollment."
+  if [ -d "$S6_ENV_DIR" ]; then
+    : > "$S6_ENV_DIR/WAZUH_REGISTRATION_PASSWORD"
+  fi
+  export WAZUH_REGISTRATION_PASSWORD=""
 fi
 
 echo "Rendering Wazuh agent config with manager $EFFECTIVE_WAZUH_MANAGER:$EFFECTIVE_WAZUH_MANAGER_PORT."
