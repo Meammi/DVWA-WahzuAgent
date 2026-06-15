@@ -1,0 +1,12 @@
+<!--
+Example only. Rename to 10-dvwa-fim.conf if you want the agent to monitor DVWA
+file changes.
+
+This is useful for file upload and malware-style labs, but detection still
+depends on manager-side rules and integrations. VirusTotal API config belongs on
+the Wazuh manager, not inside this agent container.
+-->
+
+<syscheck>
+  <directories check_all="yes" realtime="yes">/dvwa-logs</directories>
+</syscheck>

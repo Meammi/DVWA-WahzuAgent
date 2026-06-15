@@ -1,0 +1,87 @@
+<ossec_config>
+  <client>
+    <server>
+      <address>__WAZUH_MANAGER__</address>
+      <port>__WAZUH_MANAGER_PORT__</port>
+      <protocol>tcp</protocol>
+    </server>
+    <config-profile>docker,dvwa</config-profile>
+    <notify_time>10</notify_time>
+    <time-reconnect>60</time-reconnect>
+    <auto_restart>yes</auto_restart>
+    <crypto_method>aes</crypto_method>
+  </client>
+
+  <client_buffer>
+    <disabled>no</disabled>
+    <queue_size>5000</queue_size>
+    <events_per_second>500</events_per_second>
+  </client_buffer>
+
+  <labels>
+    <label key="deployment">docker</label>
+    <label key="application">dvwa</label>
+    <label key="agent_name">__WAZUH_AGENT_NAME__</label>
+    <label key="agent_group">__WAZUH_AGENT_GROUP__</label>
+  </labels>
+
+  <enrollment>
+    <enabled>yes</enabled>
+    <manager_address>__WAZUH_REGISTRATION_SERVER__</manager_address>
+    <port>__WAZUH_REGISTRATION_PORT__</port>
+    <agent_name>__WAZUH_AGENT_NAME__</agent_name>
+    <groups>__WAZUH_AGENT_GROUP__</groups>
+__WAZUH_REGISTRATION_PASSWORD_BLOCK__
+  </enrollment>
+
+  <localfile>
+    <log_format>apache</log_format>
+    <location>/dvwa-logs/access.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>apache</log_format>
+    <location>/dvwa-logs/error.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>apache</log_format>
+    <location>/dvwa-logs/other_vhosts_access.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>apache</log_format>
+    <location>/dvwa-logs/access.log.*</location>
+  </localfile>
+
+  <localfile>
+    <log_format>apache</log_format>
+    <location>/dvwa-logs/error.log.*</location>
+  </localfile>
+
+  <rootcheck>
+    <disabled>no</disabled>
+  </rootcheck>
+
+  <wodle name="syscollector">
+    <disabled>no</disabled>
+    <interval>1h</interval>
+    <scan_on_start>yes</scan_on_start>
+    <hardware>yes</hardware>
+    <os>yes</os>
+    <network>yes</network>
+    <packages>yes</packages>
+    <ports all="no">yes</ports>
+    <processes>yes</processes>
+  </wodle>
+
+  <syscheck>
+    <disabled>no</disabled>
+    <frequency>43200</frequency>
+    <scan_on_start>yes</scan_on_start>
+  </syscheck>
+
+  <active-response>
+    <disabled>yes</disabled>
+  </active-response>
+</ossec_config>
