@@ -25,15 +25,6 @@
     <label key="agent_group">__WAZUH_AGENT_GROUP__</label>
   </labels>
 
-  <enrollment>
-    <enabled>yes</enabled>
-    <manager_address>__WAZUH_REGISTRATION_SERVER__</manager_address>
-    <port>__WAZUH_REGISTRATION_PORT__</port>
-    <agent_name>__WAZUH_AGENT_NAME__</agent_name>
-    <groups>__WAZUH_AGENT_GROUP__</groups>
-__WAZUH_REGISTRATION_PASSWORD_BLOCK__
-  </enrollment>
-
   <localfile>
     <log_format>apache</log_format>
     <location>/dvwa-logs/access.log</location>
@@ -84,4 +75,8 @@ __WAZUH_REGISTRATION_PASSWORD_BLOCK__
   <active-response>
     <disabled>yes</disabled>
   </active-response>
+
+  <logging>
+    <log_format>plain</log_format>
+  </logging>
 </ossec_config>
