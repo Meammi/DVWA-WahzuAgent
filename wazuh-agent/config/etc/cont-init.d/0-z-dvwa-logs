@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/with-contenv sh
 set -eu
 
 OSSEC_CONF="${OSSEC_CONF:-/var/ossec/etc/ossec.conf}"
@@ -40,6 +40,8 @@ if [ -z "$EFFECTIVE_WAZUH_MANAGER" ]; then
   echo "WAZUH manager address is empty. Refusing to overwrite $OSSEC_CONF with an invalid client configuration."
   exit 1
 fi
+
+echo "Rendering Wazuh agent config with manager $EFFECTIVE_WAZUH_MANAGER:$EFFECTIVE_WAZUH_MANAGER_PORT."
 
 TMP_CONF="$(mktemp)"
 RENDERED_TEMPLATE="$(mktemp)"
