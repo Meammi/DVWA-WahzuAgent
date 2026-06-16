@@ -6,6 +6,7 @@ services:
     ports:
       - "${DVWA_HTTP_PORT:-8080}:80"
     volumes:
+      - dvwa_webroot:/var/www/html
       - dvwa_apache_logs:/var/log/apache2
     networks:
       - dvwa_wazuh
@@ -31,6 +32,7 @@ services:
       WAZUH_AGENT_GROUP: ${WAZUH_AGENT_GROUP:-default}
     volumes:
       - dvwa_apache_logs:/dvwa-logs:ro
+      - dvwa_webroot:/dvwa-webroot:ro
       - ./config/wazuh_agent:/agent-config:ro
       - wazuh_agent_etc:/var/ossec/etc
       - wazuh_agent_var:/var/ossec/var
@@ -38,6 +40,7 @@ services:
       - dvwa_wazuh
 
 volumes:
+  dvwa_webroot:
   dvwa_apache_logs:
   wazuh_agent_etc:
   wazuh_agent_var:
