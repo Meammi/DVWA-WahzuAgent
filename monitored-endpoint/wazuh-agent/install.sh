@@ -19,10 +19,15 @@ if [[ ! -f "$ROOT_DIR/.env" ]]; then
 fi
 
 source "$ROOT_DIR/.env"
+if [[ -z "$WAZUH_MANAGER_ADDRESS" || -z "$WAZUH_VERSION" || -z "$WAZUH_MANAGER_PORT" ]]; then
+    echo "[ERROR] WAZUH_MANAGER_ADDRESS, WAZUH_VERSION, and WAZUH_MANAGER_PORT must be set in .env."
+    exit 1
+fi
 
-# Validate required variables
-: "${WAZUH_MANAGER_ADDRESS:?WAZUH_MANAGER_ADDRESS is not set}"
-: "${WAZUH_VERSION:?WAZUH_VERSION is not set}"
+sed \
+    -e "s/{{WAZUH_MANAGER_ADDRESS}}/$WAZUH_MANAGER_ADDRESS/g" \
+    -e "s/{{WAZUH_MANAGER_PORT}}/$WAZUH_MANAGER_PORT/g" \
+    "$SCRIPT_DIR/ossec.conf.template" > /var/ossec/etc/ossec.conf
 
 echo "[INFO] Installing dependencies..."
 apt update
