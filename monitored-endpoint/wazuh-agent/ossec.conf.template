@@ -1,0 +1,11 @@
+<ossec_config>
+
+  <client>
+    <server>
+      <address>__WAZUH_MANAGER_ADDRESS__</address>
+      <port>__WAZUH_MANAGER_PORT__</port>
+      <protocol>tcp</protocol>
+    </server>
+  </client>
+
+</ossec_config>

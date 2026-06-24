@@ -21,7 +21,7 @@ fi
 source "$ROOT_DIR/.env"
 
 # Validate required variables
-: "${MANAGER_IP:?MANAGER_IP is not set}"
+: "${WAZUH_MANAGER_ADDRESS:?WAZUH_MANAGER_ADDRESS is not set}"
 : "${WAZUH_VERSION:?WAZUH_VERSION is not set}"
 
 echo "[INFO] Installing dependencies..."
@@ -39,7 +39,7 @@ echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4
 apt update
 
 echo "[INFO] Installing Wazuh Agent ${WAZUH_VERSION}..."
-WAZUH_MANAGER="$MANAGER_IP" \
+WAZUH_MANAGER="$WAZUH_MANAGER_ADDRESS" \
 apt install -y wazuh-agent="${WAZUH_VERSION}"-1
 
 echo "[INFO] Installing configuration..."
