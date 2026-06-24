@@ -1,4 +1,3 @@
-```bash
 #!/usr/bin/env bash
 
 set -euo pipefail
@@ -54,4 +53,4 @@ echo ""
 echo "Installation completed!"
 echo "Next step:"
 echo "sudo ./register-agent.sh"
-```
+
