@@ -2,10 +2,13 @@
 
   <client>
     <server>
-      <address>__WAZUH_MANAGER_ADDRESS__</address>
-      <port>__WAZUH_MANAGER_PORT__</port>
+      <address>{{WAZUH_MANAGER_ADDRESS}}</address>
+      <port>{{WAZUH_MANAGER_PORT}}</port>
       <protocol>tcp</protocol>
     </server>
+    <enrollment>
+        <agent_name>{{AGENT_NAME}}</agent_name>
+    </enrollment>
   </client>
 
 </ossec_config>

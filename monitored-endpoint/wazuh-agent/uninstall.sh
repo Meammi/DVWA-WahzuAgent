@@ -13,7 +13,7 @@ systemctl stop wazuh-agent 2>/dev/null || true
 systemctl disable wazuh-agent 2>/dev/null || true
 
 echo "[INFO] Removing Wazuh Agent..."
-apt remove -y wazuh-agent
+apt purge -y wazuh-agent
 
 echo "[INFO] Removing unused packages..."
 apt autoremove -y
