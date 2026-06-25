@@ -1,50 +1,8 @@
 services:
   dvwa:
     image: vulnerables/web-dvwa:latest
-    container_name: dvwa
     restart: unless-stopped
     ports:
       - "${DVWA_HTTP_PORT:-8080}:80"
     volumes:
-      - dvwa_webroot:/var/www/html
-      - dvwa_apache_logs:/var/log/apache2
-    networks:
-      - dvwa_wazuh
-
-  # wazuh-agent:
-  #   build:
-  #     context: ./wazuh-agent
-  #     args:
-  #       WAZUH_AGENT_IMAGE_TAG: ${WAZUH_AGENT_IMAGE_TAG:?Set WAZUH_AGENT_IMAGE_TAG in .env}
-  #   image: local/wazuh-agent-dvwa:${WAZUH_AGENT_IMAGE_TAG}
-  #   container_name: wazuh-agent-dvwa
-  #   hostname: ${WAZUH_AGENT_NAME:-dvwa-agent}
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - dvwa
-  #   environment:
-  #     WAZUH_MANAGER: ${WAZUH_MANAGER:?Set WAZUH_MANAGER in .env}
-  #     WAZUH_MANAGER_PORT: ${WAZUH_MANAGER_PORT:-1514}
-  #     WAZUH_REGISTRATION_SERVER: ${WAZUH_REGISTRATION_SERVER:?Set WAZUH_REGISTRATION_SERVER in .env}
-  #     WAZUH_REGISTRATION_PORT: ${WAZUH_REGISTRATION_PORT:-1515}
-  #     WAZUH_REGISTRATION_PASSWORD: ${WAZUH_REGISTRATION_PASSWORD:-}
-  #     WAZUH_AGENT_NAME: ${WAZUH_AGENT_NAME:-dvwa-agent}
-  #     WAZUH_AGENT_GROUP: ${WAZUH_AGENT_GROUP:-default}
-  #   volumes:
-  #     - dvwa_apache_logs:/dvwa-logs:ro
-  #     - dvwa_webroot:/dvwa-webroot:ro
-  #     - ./config/wazuh_agent:/agent-config:ro
-  #     - wazuh_agent_etc:/var/ossec/etc
-  #     - wazuh_agent_var:/var/ossec/var
-  #   networks:
-  #     - dvwa_wazuh
-
-# volumes:
-#   dvwa_webroot:
-#   dvwa_apache_logs:
-#   wazuh_agent_etc:
-#   wazuh_agent_var:
-
-networks:
-  dvwa_wazuh:
-    driver: bridge
+      - ../logs/apache:/var/log/apache2
