@@ -3,4 +3,5 @@
 .DS_Store
 SKILL.md
 TASK_LOG.md
-README.md
+monitored-endpoint/logs/apache/*
+!monitored-endpoint/logs/apache/.gitkeep
