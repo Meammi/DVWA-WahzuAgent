@@ -5,3 +5,8 @@ SKILL.md
 TASK_LOG.md
 monitored-endpoint/logs/apache/*
 !monitored-endpoint/logs/apache/.gitkeep
+wazuh-server/config/wazuh_indexer_ssl_certs
+wazuh-server/config/wazuh_cluster/shared/*
+!wazuh-server/config/wazuh_cluster/shared/default/
+wazuh-server/config/wazuh_cluster/shared/default/*
+!wazuh-server/config/wazuh_cluster/shared/default/agent.conf
