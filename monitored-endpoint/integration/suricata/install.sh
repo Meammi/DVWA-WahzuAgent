@@ -6,7 +6,7 @@ ROOT_DIR="$(dirname "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 SURICATA_CONFIG_PATH="/etc/suricata/suricata.yaml"
 SURICATA_DEFAULTS_PATH="/etc/default/suricata"
 SURICATA_LOG_DIR="/var/log/suricata"
-SURICATA_RULE_DIR="/etc/suricata/rules"
+SURICATA_RULE_DIR="/var/lib/suricata/rules"
 SURICATA_EVE_PATH="$SURICATA_LOG_DIR/eve.json"
 OSSEC_CONFIG_PATH="/var/ossec/etc/ossec.conf"
 SURICATA_EXAMPLE_CANDIDATES=(
@@ -96,7 +96,7 @@ install_suricata() {
     fi
 
     apt-get update
-    apt-get install -y suricata
+    apt-get install -y suricata suricata-update || apt-get install -y suricata
 }
 
 reset_suricata_config() {
@@ -117,8 +117,8 @@ reset_suricata_config() {
         fi
     done
 
-    echo "[ERROR] Could not find a packaged Suricata example config."
-    exit 1
+    echo "[WARN] Could not find a packaged Suricata example config. Reusing the current config."
+    require_file "$SURICATA_CONFIG_PATH"
 }
 
 install_rules() {
@@ -152,23 +152,16 @@ configure_suricata() {
 
     sed -i -E 's|^(\s*HOME_NET:\s*).*$|\1"'"$HOME_NET_VALUE"'"|' "$SURICATA_CONFIG_PATH"
     sed -i -E 's|^(\s*EXTERNAL_NET:\s*).*$|\1"any"|' "$SURICATA_CONFIG_PATH"
-    sed -i -E 's|^(\s*default-rule-path:\s*).*$|\1/etc/suricata/rules|' "$SURICATA_CONFIG_PATH"
+    sed -i -E 's|^(\s*default-rule-path:\s*).*$|\1/var/lib/suricata/rules|' "$SURICATA_CONFIG_PATH"
 
-    if ! grep -Eq '^\s*-\s*"\*\.rules"\s*$' "$SURICATA_CONFIG_PATH"; then
-        sed -i '/^rule-files:/a\  - "*.rules"' "$SURICATA_CONFIG_PATH"
+    if grep -Eq '^\s*-\s*suricata\.rules\s*$' "$SURICATA_CONFIG_PATH" || grep -Eq '^\s*-\s*"suricata\.rules"\s*$' "$SURICATA_CONFIG_PATH"; then
+        sed -i -E 's|^(\s*-\s*)"?(suricata\.rules)"?\s*$|\1"suricata.rules"|' "$SURICATA_CONFIG_PATH"
+    elif ! grep -Eq '^\s*-\s*"suricata\.rules"\s*$' "$SURICATA_CONFIG_PATH"; then
+        sed -i '/^rule-files:/a\  - "suricata.rules"' "$SURICATA_CONFIG_PATH"
     fi
 
     perl -0pi -e 's/stats:\n(\s*)enabled:\s*no/stats:\n${1}enabled: yes/m' "$SURICATA_CONFIG_PATH"
-
-    if grep -q '^af-packet:' "$SURICATA_CONFIG_PATH"; then
-        perl -0pi -e 's/af-packet:\n(\s*)-\s*interface:\s*[^\n]+/af-packet:\n${1}- interface: '"$CAPTURE_INTERFACE"'/m' "$SURICATA_CONFIG_PATH"
-    else
-        cat >>"$SURICATA_CONFIG_PATH" <<EOF
-
-af-packet:
-  - interface: $CAPTURE_INTERFACE
-EOF
-    fi
+    sed -i -E 's|^(\s*interface:\s*).*$|\1'"$CAPTURE_INTERFACE"'|' "$SURICATA_CONFIG_PATH"
 
     if [[ -f "$SURICATA_DEFAULTS_PATH" ]]; then
         if grep -q '^IFACE=' "$SURICATA_DEFAULTS_PATH"; then
