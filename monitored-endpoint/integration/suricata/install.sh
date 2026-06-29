@@ -9,6 +9,12 @@ SURICATA_LOG_DIR="/var/log/suricata"
 SURICATA_RULE_DIR="/etc/suricata/rules"
 SURICATA_EVE_PATH="$SURICATA_LOG_DIR/eve.json"
 OSSEC_CONFIG_PATH="/var/ossec/etc/ossec.conf"
+SURICATA_EXAMPLE_CANDIDATES=(
+    "/usr/share/doc/suricata/examples/suricata.yaml"
+    "/usr/share/doc/suricata/examples/suricata.yaml.gz"
+    "/usr/share/doc/suricata/suricata.yaml"
+    "/usr/share/doc/suricata/suricata.yaml.gz"
+)
 
 if [[ $EUID -ne 0 ]]; then
     echo "[ERROR] Please run this script as root."
@@ -93,26 +99,43 @@ install_suricata() {
     apt-get install -y suricata
 }
 
+reset_suricata_config() {
+    local candidate
+
+    echo "[INFO] Resetting Suricata config to a package baseline..."
+    mkdir -p "$(dirname "$SURICATA_CONFIG_PATH")"
+
+    for candidate in "${SURICATA_EXAMPLE_CANDIDATES[@]}"; do
+        if [[ -f "$candidate" ]]; then
+            cp "$SURICATA_CONFIG_PATH" "${SURICATA_CONFIG_PATH}.pre-wazuh.bak" 2>/dev/null || true
+            if [[ "$candidate" == *.gz ]]; then
+                gzip -dc "$candidate" > "$SURICATA_CONFIG_PATH"
+            else
+                cp "$candidate" "$SURICATA_CONFIG_PATH"
+            fi
+            return
+        fi
+    done
+
+    echo "[ERROR] Could not find a packaged Suricata example config."
+    exit 1
+}
+
 install_rules() {
-    local suricata_version
-    local rules_url
+    echo "[INFO] Installing Emerging Threats rules..."
+    mkdir -p "$SURICATA_RULE_DIR"
+
+    if command -v suricata-update >/dev/null 2>&1; then
+        suricata-update
+        return
+    fi
+
+    local rules_url="https://rules.emergingthreats.net/open/suricata-6.0.8/emerging.rules.tar.gz"
     local rules_archive="/tmp/emerging.rules.tar.gz"
     local extract_dir="/tmp/emerging-rules.$$"
 
-    suricata_version="$(suricata --build-info 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+\.[0-9]+\.[0-9]+$/) { print $i; exit }}')"
-    rules_url=""
-
-    if [[ -n "$suricata_version" ]]; then
-        rules_url="https://rules.emergingthreats.net/open/suricata-${suricata_version}/emerging.rules.tar.gz"
-    fi
-
-    if [[ -z "$rules_url" ]] || ! curl -fsI "$rules_url" >/dev/null 2>&1; then
-        rules_url="https://rules.emergingthreats.net/open/suricata-6.0.8/emerging.rules.tar.gz"
-    fi
-
-    echo "[INFO] Installing Emerging Threats rules..."
     rm -rf "$extract_dir"
-    mkdir -p "$extract_dir" "$SURICATA_RULE_DIR"
+    mkdir -p "$extract_dir"
     curl -fsSL "$rules_url" -o "$rules_archive"
     tar -xzf "$rules_archive" -C "$extract_dir"
     find "$SURICATA_RULE_DIR" -maxdepth 1 -type f -name '*.rules' -delete
@@ -124,9 +147,8 @@ install_rules() {
 configure_suricata() {
     echo "[INFO] Configuring Suricata..."
 
+    reset_suricata_config
     require_file "$SURICATA_CONFIG_PATH"
-
-    cp "$SURICATA_CONFIG_PATH" "${SURICATA_CONFIG_PATH}.bak"
 
     sed -i -E 's|^(\s*HOME_NET:\s*).*$|\1"'"$HOME_NET_VALUE"'"|' "$SURICATA_CONFIG_PATH"
     sed -i -E 's|^(\s*EXTERNAL_NET:\s*).*$|\1"any"|' "$SURICATA_CONFIG_PATH"
@@ -234,8 +256,8 @@ detect_interface
 detect_home_net
 install_dependencies
 install_suricata
-install_rules
 configure_suricata
+install_rules
 configure_wazuh_agent
 enable_service
 verify_installation
