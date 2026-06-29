@@ -1,0 +1,44 @@
+%YAML 1.1
+---
+
+vars:
+  address-groups:
+    HOME_NET: "[any]"
+    EXTERNAL_NET: "!$HOME_NET"
+
+default-log-dir: /var/log/suricata
+
+af-packet:
+  - interface: {{SURICATA_INTERFACE}}
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      community-id: yes
+      types:
+        - alert
+        - anomaly
+        - dns
+        - http
+        - tls
+        - flow
+        - files
+        - ssh
+
+logging:
+  default-log-level: notice
+
+app-layer:
+  protocols:
+    tls:
+      enabled: yes
+    http:
+      enabled: yes
+
+pcap:
+  - interface: {{SURICATA_INTERFACE}}
