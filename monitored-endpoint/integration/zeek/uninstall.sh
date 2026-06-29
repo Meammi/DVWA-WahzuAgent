@@ -13,13 +13,20 @@ systemctl disable zeek 2>/dev/null || true
 rm -f /etc/systemd/system/zeek.service
 systemctl daemon-reload
 
+if [[ -f /var/ossec/etc/ossec.conf ]]; then
+    sed -i '/<!-- WAZUH_ZEEK_INTEGRATION -->/,/<\/localfile>/d' /var/ossec/etc/ossec.conf
+    if systemctl list-unit-files | grep -q '^wazuh-agent\.service'; then
+        systemctl restart wazuh-agent || true
+    fi
+fi
+
 echo "[INFO] Removing Zeek packages..."
 apt purge -y zeek jq || true
 apt autoremove -y
 
 echo "[INFO] Removing Zeek repository..."
 rm -f /etc/apt/sources.list.d/security:zeek.list
-rm -f /usr/share/keyrings/security_zeek.gpg
+rm -f /etc/apt/trusted.gpg.d/security_zeek.gpg
 apt update
 
 read -rp "Remove Zeek data under /opt/zeek? [y/N]: " answer

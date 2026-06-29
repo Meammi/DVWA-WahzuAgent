@@ -11,6 +11,13 @@ echo "[INFO] Stopping Suricata..."
 systemctl stop suricata 2>/dev/null || true
 systemctl disable suricata 2>/dev/null || true
 
+if [[ -f /var/ossec/etc/ossec.conf ]]; then
+    sed -i '/<!-- WAZUH_SURICATA_INTEGRATION -->/,/<\/localfile>/d' /var/ossec/etc/ossec.conf
+    if systemctl list-unit-files | grep -q '^wazuh-agent\.service'; then
+        systemctl restart wazuh-agent || true
+    fi
+fi
+
 echo "[INFO] Removing Suricata packages..."
 apt purge -y suricata jq || true
 apt autoremove -y

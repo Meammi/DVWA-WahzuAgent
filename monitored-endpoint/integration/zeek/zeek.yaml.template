@@ -1,10 +1,1 @@
-# Rendered by install.sh into /opt/zeek/share/zeek/site/wazuh-json-logs.zeek
-
-redef LogAscii::use_json = T;
-redef LogAscii::json_timestamps = JSON::TS_ISO8601;
-
-# Keep the common protocol analyzers loaded so Wazuh can ingest the expected logs.
-@load base/protocols/conn
-@load base/protocols/dns
-@load base/protocols/http
-@load base/protocols/ssl
+@load policy/tuning/json-logs.zeek
