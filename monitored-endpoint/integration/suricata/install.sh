@@ -204,12 +204,13 @@ configure_wazuh_agent() {
 
 enable_service() {
     echo "[INFO] Enabling Suricata service..."
+    systemctl reset-failed suricata 2>/dev/null || true
     systemctl enable suricata >/dev/null
     systemctl restart suricata
 }
 
 verify_installation() {
-    local attempts=15
+    local attempts=30
 
     if ! suricata -T -c "$SURICATA_CONFIG_PATH" -i "$CAPTURE_INTERFACE" >/tmp/suricata-verify.log 2>&1; then
         echo "[ERROR] Suricata configuration test failed."
@@ -217,12 +218,21 @@ verify_installation() {
         exit 1
     fi
 
+    while (( attempts > 0 )); do
+        if systemctl is-active --quiet suricata; then
+            break
+        fi
+        sleep 1
+        ((attempts--))
+    done
+
     if ! systemctl is-active --quiet suricata; then
         echo "[ERROR] Suricata service failed to start."
         journalctl -u suricata -n 30 --no-pager || true
         exit 1
     fi
 
+    attempts=30
     while (( attempts > 0 )); do
         if [[ -f "$SURICATA_EVE_PATH" ]]; then
             break
