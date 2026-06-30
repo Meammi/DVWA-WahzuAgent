@@ -3,13 +3,16 @@
 
 vars:
   address-groups:
-    HOME_NET: "[any]"
-    EXTERNAL_NET: "!$HOME_NET"
+    HOME_NET: "__HOME_NET__"
+    EXTERNAL_NET: "any"
 
-default-log-dir: /var/log/suricata
+default-rule-path: /var/lib/suricata/rules
+
+rule-files:
+  - suricata.rules
 
 af-packet:
-  - interface: {{SURICATA_INTERFACE}}
+  - interface: __CAPTURE_INTERFACE__
     cluster-id: 99
     cluster-type: cluster_flow
     defrag: yes
@@ -30,15 +33,5 @@ outputs:
         - files
         - ssh
 
-logging:
-  default-log-level: notice
-
-app-layer:
-  protocols:
-    tls:
-      enabled: yes
-    http:
-      enabled: yes
-
-pcap:
-  - interface: {{SURICATA_INTERFACE}}
+stats:
+  enabled: yes
