@@ -8,7 +8,6 @@ SURICATA_RULE_DIR="/var/lib/suricata/rules"
 SURICATA_EVE_PATH="$SURICATA_LOG_DIR/eve.json"
 OSSEC_CONFIG_PATH="/var/ossec/etc/ossec.conf"
 TEMPLATE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/suricata.yaml.template"
-RULES_URL="https://rules.emergingthreats.net/open/suricata-6.0.8/emerging.rules.tar.gz"
 
 if [[ $EUID -ne 0 ]]; then
     echo "[ERROR] Please run this script as root."
@@ -71,23 +70,12 @@ install_suricata() {
     fi
 
     apt-get update
-    apt-get install -y suricata
+    apt-get install -y suricata suricata-update
 }
 
 install_rules() {
     echo "[INFO] Installing Emerging Threats rules..."
-    mkdir -p "$SURICATA_RULE_DIR"
-    local rules_archive="/tmp/emerging.rules.tar.gz"
-    local extract_dir="/tmp/emerging-rules.$$"
-
-    rm -rf "$extract_dir"
-    mkdir -p "$extract_dir"
-    curl -fsSL "$RULES_URL" -o "$rules_archive"
-    tar -xzf "$rules_archive" -C "$extract_dir"
-    find "$SURICATA_RULE_DIR" -maxdepth 1 -type f -name '*.rules' -delete
-    cp "$extract_dir"/rules/*.rules "$SURICATA_RULE_DIR"/
-    chmod 0644 "$SURICATA_RULE_DIR"/*.rules
-    rm -rf "$extract_dir" "$rules_archive"
+    suricata-update
 }
 
 configure_suricata() {
