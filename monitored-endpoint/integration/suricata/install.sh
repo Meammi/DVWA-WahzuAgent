@@ -70,7 +70,11 @@ install_suricata() {
     fi
 
     apt-get update
-    apt-get install -y suricata suricata-update
+    apt-get install -y suricata
+
+    if ! command -v suricata-update >/dev/null 2>&1; then
+        apt-get install -y suricata-update
+    fi
 }
 
 install_rules() {
@@ -81,12 +85,22 @@ install_rules() {
 configure_suricata() {
     echo "[INFO] Configuring Suricata..."
 
+    mkdir -p "$SURICATA_LOG_DIR"
+
+    if [[ -f "$SURICATA_CONFIG_PATH" ]]; then
+        cp "$SURICATA_CONFIG_PATH" "${SURICATA_CONFIG_PATH}.bak"
+        sed -i \
+            -e "0,/HOME_NET:.*/s|HOME_NET:.*|HOME_NET: \"$HOME_NET_VALUE\"|" \
+            -e "0,/interface:.*/s|interface:.*|interface: $CAPTURE_INTERFACE|" \
+            "$SURICATA_CONFIG_PATH"
+        return
+    fi
+
     if [[ ! -f "$TEMPLATE_PATH" ]]; then
         echo "[ERROR] Missing template: $TEMPLATE_PATH"
         exit 1
     fi
 
-    mkdir -p "$SURICATA_LOG_DIR"
     sed \
         -e "s|__HOME_NET__|$HOME_NET_VALUE|g" \
         -e "s|__CAPTURE_INTERFACE__|$CAPTURE_INTERFACE|g" \
