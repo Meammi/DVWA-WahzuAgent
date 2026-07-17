@@ -2,6 +2,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -19,6 +20,7 @@ def required_env(name: str) -> str:
 OLLAMA_BASE_URL = required_env("OLLAMA_BASE_URL").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:0.5b")
 OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "60"))
+DISPLAY_OUTPUT_URL = os.getenv("DISPLAY_OUTPUT_URL", "").strip()
 
 
 def ollama_chat_url() -> str:
@@ -80,6 +82,24 @@ def ask_ollama(prompt: str) -> str:
     return content
 
 
+def send_display_output(payload: dict[str, Any]) -> tuple[bool, str | None]:
+    if not DISPLAY_OUTPUT_URL:
+        return False, "DISPLAY_OUTPUT_URL is not set"
+
+    request = urllib.request.Request(
+        DISPLAY_OUTPUT_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response.read()
+    except (urllib.error.URLError, TimeoutError) as exc:
+        return False, str(exc)
+    return True, None
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "model": OLLAMA_MODEL}
@@ -92,9 +112,23 @@ async def receive_alert(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="Expected a JSON object")
 
     metadata = compact_alert(alert)
-    return {
+    analysis = ask_ollama(build_prompt(alert))
+    display_payload = {
+        "source": "wazuh-ai-bridge",
+        "model": OLLAMA_MODEL,
+        "alert": metadata,
+        "analysis": analysis,
+        "received_at": datetime.now(timezone.utc).isoformat(),
+    }
+    display_sent, display_error = send_display_output(display_payload)
+
+    response = {
         "status": "ok",
         "model": OLLAMA_MODEL,
         "alert": metadata,
-        "analysis": ask_ollama(build_prompt(alert)),
+        "analysis": analysis,
+        "display_sent": display_sent,
     }
+    if display_error:
+        response["display_error"] = display_error
+    return response
