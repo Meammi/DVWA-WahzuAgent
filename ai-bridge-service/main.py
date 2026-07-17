@@ -6,12 +6,19 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 
+app = FastAPI(title="Wazuh AI Bridge")
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434").rstrip("/")
+
+def required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"{name} is required, example: http://192.168.1.50:11434")
+    return value
+
+
+OLLAMA_BASE_URL = required_env("OLLAMA_BASE_URL").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
 OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "60"))
-
-app = FastAPI(title="Wazuh AI Bridge")
 
 
 def ollama_chat_url() -> str:
