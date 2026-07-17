@@ -58,6 +58,7 @@ services:
     environment:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:?Set OLLAMA_BASE_URL to the Ollama VM URL, for example http://192.168.1.50:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.1}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-180}
 
   wazuh.indexer:
     image: wazuh/wazuh-indexer:4.14.5
