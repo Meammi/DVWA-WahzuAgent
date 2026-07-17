@@ -17,7 +17,7 @@ def required_env(name: str) -> str:
 
 
 OLLAMA_BASE_URL = required_env("OLLAMA_BASE_URL").rstrip("/")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:0.5b")
 OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "60"))
 
 
@@ -42,9 +42,10 @@ def compact_alert(alert: dict[str, Any]) -> dict[str, Any]:
 
 def build_prompt(alert: dict[str, Any]) -> str:
     return (
-        "Analyze this Wazuh security alert for a security analyst. "
-        "Explain what likely happened, how serious it is, and what to do next. "
-        "Do not invent facts that are not in the alert.\n\n"
+        "Analyze this Wazuh security alert for a security analyst.\n"
+        "Use only the evidence in the JSON. Do not claim credential theft, data breach, "
+        "malware, persistence, or confirmed compromise unless the alert explicitly says so.\n"
+        "Return four short lines: Summary, Severity, Evidence, Recommended action.\n\n"
         f"{json.dumps(compact_alert(alert), indent=2)}"
     )
 
@@ -56,7 +57,7 @@ def ask_ollama(prompt: str) -> str:
         "messages": [
             {
                 "role": "system",
-                "content": "You explain Wazuh alerts in concise natural language.",
+                "content": "You are cautious. Separate observed facts from guesses.",
             },
             {"role": "user", "content": prompt},
         ],
