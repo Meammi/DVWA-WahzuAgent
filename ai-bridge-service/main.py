@@ -44,10 +44,17 @@ def compact_alert(alert: dict[str, Any]) -> dict[str, Any]:
 
 def build_prompt(alert: dict[str, Any]) -> str:
     return (
-        "Analyze this Wazuh security alert for a security analyst.\n"
+        "Write a concise SOC analyst report for this Wazuh security alert.\n"
         "Use only the evidence in the JSON. Do not claim credential theft, data breach, "
         "malware, persistence, or confirmed compromise unless the alert explicitly says so.\n"
-        "Return four short lines: Summary, Severity, Evidence, Recommended action.\n\n"
+        "If a fact is missing, say Unknown instead of guessing.\n\n"
+        "Report format:\n"
+        "1. Alert Summary: one or two sentences explaining what happened.\n"
+        "2. Severity Assessment: state the Wazuh level and practical risk in plain language.\n"
+        "3. Observed Evidence: list the concrete fields/log details that support the alert.\n"
+        "4. Possible Impact: describe realistic impact, clearly marked as possible, not confirmed.\n"
+        "5. Recommended Actions: give 3 to 5 immediate SOC triage steps.\n"
+        "6. Confidence: Low, Medium, or High, with one short reason.\n\n"
         f"{json.dumps(compact_alert(alert), indent=2)}"
     )
 
@@ -59,7 +66,7 @@ def ask_ollama(prompt: str) -> str:
         "messages": [
             {
                 "role": "system",
-                "content": "You are cautious. Separate observed facts from guesses.",
+                "content": "You are a cautious SOC analyst. Separate observed facts from assumptions.",
             },
             {"role": "user", "content": prompt},
         ],
