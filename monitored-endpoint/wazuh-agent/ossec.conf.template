@@ -11,6 +11,9 @@
     </enrollment>
   </client>
 
-  
+  <localfile>
+    <log_format>apache</log_format>
+    <location>{{DVWA_APACHE_ACCESS_LOG}}</location>
+  </localfile>
 
 </ossec_config>

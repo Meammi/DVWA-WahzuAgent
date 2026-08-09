@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+import sys
+import urllib.error
+import urllib.request
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        print("custom-ai-bridge: expected alert_file argument", file=sys.stderr)
+        return 1
+
+    alert_file = sys.argv[1]
+    hook_url = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] else "http://ai-bridge:8000/receive-alert"
+
+    with open(alert_file, "rb") as file:
+        payload = file.read()
+
+    request = urllib.request.Request(
+        hook_url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            print(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError) as exc:
+        print(f"custom-ai-bridge: POST failed: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

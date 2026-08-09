@@ -5,6 +5,7 @@ set -euo pipefail
 # Resolve project paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+DVWA_APACHE_ACCESS_LOG="$ROOT_DIR/logs/apache/access.log"
 
 # Ensure the script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -50,11 +51,14 @@ fi
 
 echo "[INFO] Installing configuration..."
 
+mkdir -p "$(dirname "$DVWA_APACHE_ACCESS_LOG")"
+touch "$DVWA_APACHE_ACCESS_LOG"
 
 sed \
     -e "s/{{WAZUH_MANAGER_ADDRESS}}/$WAZUH_MANAGER_ADDRESS/g" \
     -e "s/{{WAZUH_MANAGER_PORT}}/$WAZUH_MANAGER_PORT/g" \
     -e "s/{{AGENT_NAME}}/$AGENT_NAME/g" \
+    -e "s|{{DVWA_APACHE_ACCESS_LOG}}|$DVWA_APACHE_ACCESS_LOG|g" \
     "$SCRIPT_DIR/ossec.conf.template" > /var/ossec/etc/ossec.conf
 
 echo "[INFO] Starting Wazuh Agent..."

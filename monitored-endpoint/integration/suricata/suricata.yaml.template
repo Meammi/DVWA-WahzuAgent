@@ -1,0 +1,37 @@
+%YAML 1.1
+---
+
+vars:
+  address-groups:
+    HOME_NET: "__HOME_NET__"
+    EXTERNAL_NET: "any"
+
+default-rule-path: /var/lib/suricata/rules
+
+rule-files:
+  - "*.rules"
+
+af-packet:
+  - interface: __CAPTURE_INTERFACE__
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      community-id: yes
+      types:
+        - alert
+        - anomaly
+        - dns
+        - http
+        - tls
+        - flow
+        - files
+        - ssh
+
+stats:
+  enabled: yes

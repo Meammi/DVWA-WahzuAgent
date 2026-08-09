@@ -1,7 +1,10 @@
 # Wazuh App Copyright (C) 2017, Wazuh Inc. (License GPLv2)
 services:
   wazuh.manager:
-    image: wazuh/wazuh-manager:4.14.5
+    build:
+      context: .
+      dockerfile: Dockerfile.wazuh-manager
+    image: wazuh-manager-ai-bridge:4.14.5
     hostname: wazuh.manager
     restart: always
     mem_limit: 1g
@@ -35,7 +38,6 @@ services:
       - wazuh_logs:/var/ossec/logs
       - wazuh_queue:/var/ossec/queue
       - wazuh_var_multigroups:/var/ossec/var/multigroups
-      - wazuh_integrations:/var/ossec/integrations
       - wazuh_active_response:/var/ossec/active-response/bin
       - wazuh_agentless:/var/ossec/agentless
       - wazuh_wodles:/var/ossec/wodles
@@ -46,6 +48,18 @@ services:
       - ./config/wazuh_indexer_ssl_certs/wazuh.manager-key.pem:/etc/ssl/filebeat.key
       - ./config/wazuh_cluster/wazuh_manager.conf:/wazuh-config-mount/etc/ossec.conf
       - ./config/wazuh_cluster/shared:/var/ossec/etc/shared
+
+  ai-bridge:
+    build:
+      context: ../ai-bridge-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:?Set OLLAMA_BASE_URL to the Ollama VM URL, for example http://192.168.1.50:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:0.5b}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-180}
+      - DISPLAY_OUTPUT_URL=${DISPLAY_OUTPUT_URL:-}
 
   wazuh.indexer:
     image: wazuh/wazuh-indexer:4.14.5
@@ -109,7 +123,6 @@ volumes:
   wazuh_logs:
   wazuh_queue:
   wazuh_var_multigroups:
-  wazuh_integrations:
   wazuh_active_response:
   wazuh_agentless:
   wazuh_wodles:
